@@ -45,7 +45,7 @@ int main(int argc , char** argv){
 		client_process(argv[1],argv[2]);
 		wait(NULL);
 	}else
-	if(pid>0){
+	if(pid>0){ //Parent Process
 		server_process(argv[3]);
 		wait(NULL);
 	}
@@ -102,10 +102,7 @@ void server_process(char* port_number){
 	strcpy(buffer,"[LIST FOUND]");
 	printf("%s\n",buffer);
 	sendto(socketfd,buffer,sizeof(buffer),0,(struct sockaddr*)&client_info,sizeof(client_info));
-	//printf("[LIST] : %s\n",list_address);
 	char real_path[100] = "./Download/";
-	//printf("[ENTER FILE PATH] : ");
-	//scanf(" %[^\n]",real_path);
 	while(1){
 		char temp_copy[100];
 		fgets(temp_copy,80,listptr);
@@ -117,7 +114,6 @@ void server_process(char* port_number){
 		memcpy(file_name,temp_copy,strlen(temp_copy)-1);
 		file_name[strlen(file_name)] = 0;
 		printf("FILE NAME : %s]\n",file_name);
-	//	fflush(stdin);
 		strcpy(path_name,real_path);
 		strcat(path_name,file_name);
 		FILE* fp;
@@ -136,7 +132,6 @@ void server_process(char* port_number){
 			int status = recvfrom(socketfd,buffer,sizeof(buffer),0,(struct sockaddr*)&client_info,&sizeof_client_info);
 			if(status>0) break;	
 		}
-		//printf("%s\n",buffer);
 		if(strcmp(buffer,"[NOTICE] : FILE ALREADY PRESENT")==0){
 			long int current_position[1]={0};
 			
@@ -146,7 +141,6 @@ void server_process(char* port_number){
 			}
 			fseek(fp,current_position[0],SEEK_SET);
 			printf("[CURRENT POSITION] : %ld\n",current_position[0]);
-	//		continue;
 		}
 		
 		FRAME frame;
@@ -222,7 +216,6 @@ void client_process(char* ipV4,char* port_number){
 		printf("%s\n",buffer);
 		exit(-1);
 	}
-	//printf("%s\n",buffer);
 	char location[100] = "./Download/";
 	char file[100]= "./Download/";
 	while(1){
@@ -232,27 +225,20 @@ void client_process(char* ipV4,char* port_number){
 			break;
 		}
 		if(strcmp(buffer,"[ERROR] : FILE NOT FOUND")==0){
-		//	printf("%s\n",buffer);
 			continue;
 		}
-	//	printf("[RECEIVING FILE] : %s\n",buffer);
 		strcpy(file,location);	
 		strcat(file,buffer);
 		FILE* fp=fopen(file,"r");
 		long int current_position[1]={0};
 		if(fp!=NULL){
-		//	printf("[CLIENT: FILE PRESENT %s ]\n",file);
 			rewind(fp);
 			memset(buffer,0,BUF_SIZE);
 			strcpy(buffer,"[NOTICE] : FILE ALREADY PRESENT");
-	//		printf("%s\n",buffer);
 			sendto(socketfd,buffer,sizeof(buffer),0,(struct sockaddr*)&server_address,sizeof(server_address));
 			fseek(fp,0,SEEK_END);
 			current_position[0] = ftell(fp);
-		//	printf("[CLIENT: FILE SIZE %ld \n]",current_position[0]);
 			sendto(socketfd,current_position,sizeof(current_position),0,(struct sockaddr*)&server_address,sizeof(server_address));
-			//fclose(fp);
-		//	continue;
 		}else{
 			strcpy(buffer,"[NOTICE] : FILE NOT PRESENT");
 			sendto(socketfd,buffer,sizeof(buffer),0,(struct sockaddr*)&server_address,sizeof(server_address));
